@@ -1,3 +1,18 @@
+# Diabetes Prediction Project Feature Engineering Part
+
+# Business Problem
+
+# It is desired to develop a machine learning model that can predict whether people have diabetes when their 
+# characteristics are specified. You are expected to perform the necessary data analysis and feature engineering 
+# steps before developing the model.
+
+# Dataset Story
+
+# The dataset is part of the large dataset held at the National Institutes of Diabetes-Digestive-Kidney Diseases 
+# in the USA. Data used for diabetes research on Pima Indian women aged 21 and over living in Phoenix, the 5th 
+# largest city of the State of Arizona in the USA.
+# The target variable is specified as "outcome"; 1 indicates positive diabetes test result, 0 indicates negative.
+
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -16,7 +31,7 @@ pd.set_option('display.max_rows', None)
 pd.set_option('display.float_format', lambda x: '%.3f' % x)
 pd.set_option('display.width', 500)
 
-# Adım 1: Genel resmi inceleyiniz.
+# Step 1: Examine the overall picture.
 df = pd.read_csv("datasets/diabetes.csv")
 df.head()
 df.describe().T
@@ -45,7 +60,7 @@ def check_df(df, head=5):
 check_df(df)
 
 
-# Adım 2: Numerik ve kategorik değişkenleri yakalayınız.
+# Step 2: Capture the numeric and categorical variables.
 def grab_col_names(df, cat_th=10, car_th=20):
     """
 
@@ -116,9 +131,9 @@ cat_cols
 # Categoric but Cardinal
 cat_but_car
 
-# Adım 3: Numerik ve kategorik değişkenlerin analizini yapınız.
+# Step 3: Analyze the numerical and categorical variables.
 
-# Kategorik değişken analizi
+# Categorical variable analysis
 def cat_summary(df, col_name, plot=False):
     print(pd.DataFrame({col_name: df[col_name].value_counts(),
                         "Ratio": 100 * df[col_name].value_counts() / len(df)}))
@@ -130,7 +145,7 @@ def cat_summary(df, col_name, plot=False):
 for col in cat_cols:
     cat_summary(df, col, plot=True)
 
-# Numerik değişken analizi
+# Numerical variable analysis
 def num_summary(df, numerical_col, plot=False):
     quantiles = [0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 0.95, 0.99]
     print(df[numerical_col].describe(quantiles).T)
@@ -144,10 +159,10 @@ def num_summary(df, numerical_col, plot=False):
 for col in num_cols:
     num_summary(df, col, plot=True)
 
-# Adım 4: Hedef değişken analizi yapınız. (Kategorik değişkenlere göre hedef değişkenin ortalaması, hedef değişkene göre
-# numerik değişkenlerin ortalaması)
+# Step 4: Perform target variable analysis. (The mean of the target variable according to the categorical variables,
+# mean of numeric variables)
 
-#Kategorik değişkenlerin hedef değişkene göre analizi
+#Analysis of categorical variables according to target variable
 
 def target_summary_with_cat(df, target, categorical_col):
     print(categorical_col)
@@ -158,7 +173,7 @@ def target_summary_with_cat(df, target, categorical_col):
 for col in cat_cols:
     target_summary_with_cat(df, "Outcome", col)
 
-# Numerik değişkenlerin hedef değişkene göre analizi
+# Analysis of numerical variables according to target variable
 
 def target_summary_with_num(df, target, numerical_col):
     print(df.groupby(target).agg({numerical_col: "mean"}), end="\n\n\n")
@@ -167,9 +182,8 @@ for col in num_cols:
     target_summary_with_num(df, "Outcome", col)
 
 
-# Adım 5: Aykırı gözlem analizi yapınız.
-
-# Aykırı degerleri yakalayalım
+# Step 5: Analyze outliers.
+# Let's catch outliers
 q1 = df["Outcome"].quantile(0.05)
 q3 = df["Outcome"].quantile(0.95)
 iqr = q3 - q1
@@ -180,7 +194,7 @@ df[(df["Outcome"] < low) | (df["Outcome"] > up)]
 
 df[(df["Outcome"] < low) | (df["Outcome"] > up)].index
 
-# aykırı deger var mı yok mu?
+# is there an outlier or not?
 df[(df["Outcome"] < low) | (df["Outcome"] > up)].any(axis=None)
 df[(df["Outcome"] < low)].any(axis=None)
 
@@ -209,10 +223,10 @@ def replace_with_thresholds(df, variable, q1=0.05, q3=0.95):
 for col in num_cols:
     print(col, check_outlier(df, col))
 
-# Adım 6: Eksik gözlem analizi
+# Step 6: Missing observation analysis
 df.isnull().sum()
 
-# Adım 7: Korelasyon analizi yapınız.
+# Step 7: Perform correlation analysis.
 f, ax = plt.subplots(figsize=[18, 13])
 sns.heatmap(df.corr(), annot=True, fmt=".2f", ax=ax, cmap="RdPu")
 ax.set_title("Correlation Matrix", fontsize=20)
@@ -229,7 +243,7 @@ rf_model = RandomForestClassifier(random_state=46).fit(X_train, y_train)
 y_pred = rf_model.predict(X_test)
 accuracy_score(y_pred, y_test)
 
-# Bu şekilde modeli kurarak Random Forest yöntemi ile kurduğumuz model tahmin sisteminin %77 başarı oranı olduğunu saptadık
+# By establishing the model in this way, we determined that the model prediction system we set up with the Random Forest method had a success rate of 77%.
 
 def plot_importance(model, features, num=len(X), save=False):
     feature_imp = pd.DataFrame({'Value': model.feature_importances_, 'Feature': features.columns})
@@ -245,12 +259,11 @@ def plot_importance(model, features, num=len(X), save=False):
 
 plot_importance(rf_model, X)
 
-
-# Görev 2: Feature Engineering
-# Adım 1: Eksik ve aykırı değerler için gerekli işlemleri yapınız. Veri setinde eksik gözlem bulunmamakta ama Glikoz, Insulin vb.
-# değişkenlerde 0 değeri içeren gözlem birimleri eksik değeri ifade ediyor olabilir. Örneğin; bir kişinin glikoz veya insulin değeri 0
-# olamayacaktır. Bu durumu dikkate alarak sıfır değerlerini ilgili değerlerde NaN olarak atama yapıp sonrasında eksik
-# değerlere işlemleri uygulayabilirsiniz.
+# Task 2: Feature Engineering
+# Step 1: Take necessary actions for missing and outlier values. There are no missing observations in the data set, but Glucose, Insulin etc.
+# observation units containing 0 in variables may represent missing values. For example; a person's glucose or insulin value is 0
+# will not be. Considering this situation, assigning the zero values to NaN in the relevant values and then missing the missing values.
+# You can apply operations to values.
 
 def maybe_missing(df, col_name):
     variables = df[df[col_name] == 0].shape[0]
@@ -282,7 +295,7 @@ def missing_values_table(df, na_name=False):
 
 na_columns = missing_values_table(df, na_name=True)
 
-# Eksik Değerlerin Bağımlı Değişken ile İlişkisinin İncelenmesi
+# Examining the Relationship of Missing Values with the Dependent Variable
 
 def missing_vs_target(df, target, na_columns):
     temp_df = df.copy()
@@ -297,13 +310,13 @@ missing_vs_target(df, "Outcome", na_columns)
 
 # In this output, there is seem that there is missing values of each variable. It should be done that application of different methods for fill na values.
 
-# Kayıp değerlerin doldurulması
+# Filling in missing values
 for col in na_columns:
-    df.loc[df[col].isnull(), col] = df[col].median()
+     df.loc[df[col].isnull(), col] = df[col].median()
 
 df.isnull().sum()
 
-# Aykırı Değer Baskılanması
+# Outlier Suppression
 for col in num_cols:
     print(col, check_outlier(df, col))
     if check_outlier(df, col):
@@ -336,7 +349,7 @@ df["Insulin"] = dff["Insulin"]
 df["SkinThickness"]= dff["SkinThickness"]
 df.isnull().sum()
 
-# Adım 2: Yeni değişkenler oluşturunuz.
+# Step 2: Create new variables.
 df.head()
 
 # Category of Age
@@ -370,7 +383,7 @@ def insulin_level(dataframe):
         return "Diabetes"
 df["Insulin_Level"] = df.apply(insulin_level, axis=1)
 
-# Tansiyon Level
+# Blood Pressure Level
 def bloodpressure_level(dataframe):
     if dataframe["BloodPressure"] <= 79:
         return "Normal"
@@ -380,15 +393,15 @@ def bloodpressure_level(dataframe):
         return "Hypertension"
 df["Bloodpressure_Level"] = df.apply(bloodpressure_level, axis=1)
 
-# Beden kitle endeksine göre şeker seviyesi
-df["glucose_per_bmi"] = df["Glucose"] / df["BMI"]
+# Sugar level according to body mass index
+df["glucose per bmi"] = df["Glucose"] / df["BMI"]
 
-# Yaşa göre insülin seviyesi
+# Insulin level by age
 df["insulin_per_age"] = df["Insulin"] / df["Age"]
 
 df.head()
 
-# Adım 3: Encoding işlemlerini gerçekleştiriniz.
+# Step 3: Perform the encoding operations.
 # Label Encoding:
 le = LabelEncoder()
 le.fit_transform(df["Outcome"])[0:5]
@@ -405,7 +418,7 @@ binary_cols
 for col in binary_cols:
     df = label_encoder(df, col)
 
-# cat_cols değişkenlerimiz içerisinde hem glikoz seviyesi hem de hedef değişkenimiz bulunduğu için bunların olmadığı ve ohe yapacağımız değişkenleri seçiyoruz
+# Since we have both the glucose level and our target variable in our cat_cols variables, we choose the variables that do not have them and ohe
 
 # One-Hot Encoding:
 def one_hot_encoder(df, categorical_cols, drop_first=True):
@@ -418,13 +431,13 @@ ohe_cols
 
 df.head()
 
-# Adım 4: Numerik değişkenler için standartlaştırma yapınız.
+# Step 4: Standardize for numeric variables.
 
 ss = StandardScaler()
 df[num_cols] = ss.fit_transform(df[num_cols])
 df.head()
 
-# Adım 5: Model oluşturunuz.
+# Step 5: Create the model.
 y = df["Outcome"]
 X = df.drop(["Outcome",'BMI','Insulin','Glucose','BloodPressure','Age'], axis=1)
 X_train, X_text, y_train, y_test = train_test_split(X, y, test_size=0.30, random_state=17)
