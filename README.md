@@ -1,6 +1,6 @@
 # Diabetes-Prediction-Feature-Engineering
 
-![alt text](http://url/to/img.png](https://www.news-medical.net/images/Article_Images/ImageForArticle_22744_16565132428524067.jpg)
+![alt text](https://www.mdanderson.org/images/publications/cancerwise/D/CW-diabetes-iStock-1168613048.jpg)
 
 # Business Problem
 
